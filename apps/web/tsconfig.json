@@ -1,0 +1,12 @@
+{
+  "extends": "@ordones/tsconfig/vite.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@ordones/ui/*": ["../../packages/ui/src/*"]
+    }
+  },
+  "include": ["src/**/*", "src/app/(auth)/login/.index.tsx"],
+  "exclude": ["node_modules", "dist"]
+}

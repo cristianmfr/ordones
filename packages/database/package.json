@@ -1,0 +1,24 @@
+{
+  "name": "@ordones/database",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "generate": "pnpm with-env prisma generate",
+    "migrate": "pnpm with-env prisma migrate dev --skip-generate",
+    "deploy": "pnpm with-env prisma migrate deploy",
+    "studio": "pnpm with-env prisma studio",
+    "reset": "pnpm with-env prisma migrate reset",
+    "seed": "pnpm with-env tsx seed.ts",
+    "prebuild": "pnpm generate",
+    "predev": "pnpm generate",
+    "with-env": "dotenv -e ../../.env --"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.15.0",
+    "dotenv-cli": "^10.0.0",
+    "prisma": "^6.15.0"
+  },
+  "exports": {
+    "./generated": "./generated/index.js"
+  }
+}

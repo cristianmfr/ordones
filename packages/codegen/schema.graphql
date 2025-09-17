@@ -1,0 +1,480 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type User {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  email: String!
+  birthdate: DateTime
+  phone: String
+  role: UserRole!
+  resetToken: String
+  isActive: Boolean!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+enum UserRole {
+  SUPER
+  ADMIN
+  USER
+  CUSTOMER
+  GUEST
+}
+
+type UserRegisterOutput {
+  user: User!
+  accessToken: String!
+}
+
+type Category {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  description: String
+  isActive: Boolean!
+  isHighlight: Boolean!
+}
+
+type CategoryPagination {
+  items: [Category!]!
+  total: Int!
+}
+
+type OperationResult {
+  success: Boolean!
+  message: String!
+}
+
+type Order {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  orderNumber: String!
+  status: OrderStatus!
+  total: Float!
+  userId: String!
+  shippingAddressId: String
+  shippingMethodId: String
+  confirmedAt: DateTime
+  shippedAt: DateTime
+  deliveredAt: DateTime
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+type OrderPagination {
+  items: [Order!]!
+  total: Int!
+}
+
+type StorageFile {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  fileStatus: FileStatus!
+  fileName: String!
+  fileKey: String!
+  fileBucket: String!
+}
+
+enum FileStatus {
+  ACTIVE
+  DELETED
+  MISSING
+  PROCESSING
+  FAILED
+}
+
+type ProductImage {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  product: Product
+  file: StorageFile!
+  presignedUrl: String
+}
+
+type Tag {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  isActive: Boolean!
+}
+
+type Product {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  slug: String!
+  hasCustomOption: Boolean!
+  hasCustomModel: Boolean!
+  description: String
+  price: Float!
+  discount: Int!
+  installments: Int!
+  sku: String!
+  stock: Int!
+  status: ProductStatus!
+  categories: [Category!]
+  tags: [Tag!]
+  height: Float!
+  length: Float!
+  width: Float!
+  weight: Float!
+  images: [ProductImage!]
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
+  SOLD_OUT
+  ON_SALE
+  HIGHLIGHT
+}
+
+type ProductPagination {
+  items: [Product!]!
+  total: Int!
+}
+
+type StorageFileWithPresignedUrl {
+  presignedUrl: String!
+  storageFile: StorageFile!
+}
+
+type ProductWithImagesResponse {
+  product: Product!
+  storageFilesWithPresignedUrls: [StorageFileWithPresignedUrl!]!
+}
+
+type FrenetShippingServiceDto {
+  Carrier: String!
+  CarrierCode: String!
+  DeliveryTime: String!
+  Msg: String!
+  ServiceCode: String!
+  ServiceDescription: String!
+  ShippingPrice: String!
+  OriginalDeliveryTime: String!
+  OriginalShippingPrice: String!
+  Error: Boolean!
+}
+
+type FrenetShippingResponseDto {
+  RecipientAddress: String
+  ShippingSevicesArray: [FrenetShippingServiceDto!]!
+  Timeout: Float!
+}
+
+type ReviewProductOutput {
+  createdBy: String!
+  createdAt: DateTime!
+  rating: Int!
+  title: String
+  comment: String
+}
+
+type RatingCount {
+  one: Int!
+  two: Int!
+  three: Int!
+  four: Int!
+  five: Int!
+}
+
+type ProductReviews {
+  totalReviews: Int!
+  averageRating: Int!
+  ratingCounts: RatingCount!
+}
+
+type TagPagination {
+  items: [Tag!]!
+  total: Int!
+}
+
+type IdentityDocument {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  documentNumber: String!
+  documentType: DocumentType!
+}
+
+enum DocumentType {
+  CPF
+  CNH
+  RG
+}
+
+type UserAuthenticated {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  email: String!
+  birthdate: DateTime
+  phone: String
+  role: UserRole!
+  resetToken: String
+  document: String
+  documentType: String
+  isActive: Boolean!
+}
+
+type UserPagination {
+  items: [User!]!
+  total: Int!
+}
+
+type Query {
+  validateUserEmailToken(token: String!): String!
+  users(query: UserQueryFilterInput!): UserPagination!
+  user(id: String!): User!
+  userAuthenticated: UserAuthenticated!
+  userByEmail(email: String!): User!
+  products(query: QueryPaginationInput!): ProductPagination!
+  productsWithFilters(filters: ProductsQueryFiltersInput!): ProductPagination!
+  product(id: String!): Product!
+  productImages(id: String!): [StorageFileWithPresignedUrl!]!
+  productShippingQuote(productId: String!, sellerCEP: String!, recipientCEP: String!, quantity: Float! = 1, recipientCountry: String! = "BR"): FrenetShippingResponseDto!
+  productsShippingQuote(productIds: [String!]!, sellerCEP: String!, recipientCEP: String!, quantity: Float! = 1, recipientCountry: String! = "BR"): FrenetShippingResponseDto!
+  categories(query: QueryPaginationInput!): CategoryPagination!
+  category(id: String!): Category!
+  tags(query: QueryPaginationInput!): TagPagination!
+  tag(id: String!): Tag!
+  storageFileUploadUrl(fileKey: String!): StorageFileWithPresignedUrl!
+  orders(query: OrderQueryFilterInput!): OrderPagination!
+  ordersList: [Order!]!
+  order(id: String!): Order!
+  ordersByUserId(userId: String!): [Order!]!
+  ordersByUserIdPaginated(userId: String!, query: OrderQueryFilterInput!): OrderPagination!
+  myOrders: [Order!]!
+  myOrdersPaginated(query: OrderQueryFilterInput!): OrderPagination!
+  reviewsProduct(productId: String!): [ReviewProductOutput!]!
+  reviewsProductSummary(productId: String!): ProductReviews!
+}
+
+input UserQueryFilterInput {
+  skip: Int
+  take: Int
+  role: [String!]
+}
+
+input QueryPaginationInput {
+  skip: Int
+  take: Int
+}
+
+input ProductsQueryFiltersInput {
+  skip: Int
+  take: Int
+  categories: [String!]
+  tags: [String!]
+  minPrice: Float
+  maxPrice: Float
+  order: String
+}
+
+input OrderQueryFilterInput {
+  skip: Int
+  take: Int
+  status: [OrderStatus!]
+  userId: String
+  orderNumber: String
+}
+
+type Mutation {
+  signIn(email: String!, password: String!): String!
+  createEmailTokenAndSend(email: String!): String!
+  signUp(user: UserRegisterInput!): UserRegisterOutput!
+  userCreate(data: UserCreateInput!): User!
+  userCreateDocument(document: IdentityDocumentCreateInput!): IdentityDocument!
+  userUpdate(id: String!, data: UserUpdateInput!): User!
+  userDelete(id: String!): OperationResult!
+  productCreate(data: ProductCreateInput!): Product!
+  productCreateMany(products: [ProductCreateInput!]!): [Product!]!
+  productCreateWithImages(data: ProductCreateWithImagesInput!): ProductWithImagesResponse!
+  productCreateImage(fileId: String!, productId: String!): OperationResult!
+  productUpdate(id: String!, data: ProductUpdateInput!): Product!
+  productDelete(id: String!): OperationResult!
+  productImageDelete(id: String!): OperationResult!
+  categoryCreate(data: CategoryCreateInput!): Category!
+  categoryUpdate(id: String!, data: CategoryUpdateInput!): Category!
+  categoryDelete(id: String!): OperationResult!
+  tagCreate(data: TagCreateInput!): Tag!
+  tagUpdate(id: String!, data: TagUpdateInput!): Tag!
+  tagDelete(id: String!): OperationResult!
+  storageFileCreate(data: StorageFileCreateInput!): StorageFileWithPresignedUrl!
+  storageFileUpdate(id: String!, data: StorageFileUpdateInput!): StorageFile!
+  orderCreate(data: OrderCreateInput!): Order!
+  orderUpdate(id: String!, data: OrderUpdateInput!): Order!
+  orderDelete(id: String!): OperationResult!
+  orderConfirm(id: String!): Order!
+  orderShip(id: String!): Order!
+  orderDeliver(id: String!): Order!
+  orderCancel(id: String!): Order!
+}
+
+input UserRegisterInput {
+  name: String!
+  birthdate: DateTime
+  password: String!
+  token: String!
+}
+
+input UserCreateInput {
+  name: String!
+  email: String!
+  birthdate: DateTime
+  documentNumber: String
+  documentType: DocumentType!
+  password: String!
+  phone: String
+  role: UserRole
+}
+
+input IdentityDocumentCreateInput {
+  userId: ID!
+  documentNumber: String!
+  documentType: DocumentType!
+}
+
+input UserUpdateInput {
+  name: String
+  email: String
+  birthdate: DateTime
+  documentNumber: String
+  documentType: DocumentType
+  password: String
+  phone: String
+  role: UserRole
+}
+
+input ProductCreateInput {
+  name: String!
+  slug: String!
+  description: String
+  price: Float!
+  sku: String!
+  stock: Int
+  status: ProductStatus
+  discount: Int
+  installments: Int
+  hasCustomOption: Boolean
+  hasCustomModel: Boolean
+  categories: [String!]
+  tags: [String!]
+  height: Float!
+  length: Float!
+  width: Float!
+  weight: Float!
+}
+
+input ProductCreateWithImagesInput {
+  name: String!
+  slug: String!
+  hasCustomOption: Boolean!
+  hasCustomModel: Boolean!
+  description: String
+  price: Float!
+  sku: String!
+  stock: Int
+  status: ProductStatus
+  categories: [String!]
+  tags: [String!]
+  productImagesInputs: [StorageFileCreateInput!]!
+}
+
+input StorageFileCreateInput {
+  fileName: String!
+  fileKey: String!
+  fileBucket: String!
+}
+
+input ProductUpdateInput {
+  name: String
+  slug: String
+  description: String
+  price: Float
+  sku: String
+  stock: Int
+  status: ProductStatus
+  discount: Int
+  installments: Int
+  hasCustomOption: Boolean
+  hasCustomModel: Boolean
+  categories: [String!]
+  tags: [String!]
+  height: Float
+  length: Float
+  width: Float
+  weight: Float
+}
+
+input CategoryCreateInput {
+  name: String!
+  description: String
+  isActive: Boolean! = true
+  isHighlight: Boolean! = false
+}
+
+input CategoryUpdateInput {
+  name: String
+  description: String
+  isActive: Boolean = true
+  isHighlight: Boolean = false
+}
+
+input TagCreateInput {
+  name: String!
+  isActive: Boolean!
+}
+
+input TagUpdateInput {
+  name: String
+  isActive: Boolean
+}
+
+input StorageFileUpdateInput {
+  fileName: String
+  fileKey: String
+  fileBucket: String
+  fileStatus: FileStatus!
+}
+
+input OrderCreateInput {
+  orderNumber: String!
+  status: OrderStatus
+  total: Float!
+  userId: String!
+  shippingAddressId: String
+  shippingMethodId: String
+}
+
+input OrderUpdateInput {
+  orderNumber: String
+  status: OrderStatus
+  total: Float
+  userId: String
+  shippingAddressId: String
+  shippingMethodId: String
+}

@@ -1,0 +1,486 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Address {
+  id String @id @default(uuid())
+
+  street       String
+  number       String?
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  zipCode      String  @map("zip_code")
+  country      String  @default("Brazil")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orders Order[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("addresses")
+}
+
+enum UserRole {
+  SUPER
+  ADMIN
+  USER
+  CUSTOMER
+  GUEST
+
+  @@map("user_roles")
+}
+
+enum EmailTokenStatus {
+  PENDING
+  CONFIRMED
+  EXPIRATED
+  ERROR
+
+  @@map("email_token_status")
+}
+
+model EmailToken {
+  id String @id @default(uuid())
+
+  email  String           @unique
+  token  String           @unique
+  status EmailTokenStatus @default(PENDING)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+enum DocumentType {
+  CPF
+  CNH
+  RG
+
+  @@map("document_types")
+}
+
+model IdentityDocument {
+  id String @id @default(uuid())
+
+  documentNumber String       @map("document_number")
+  documentType   DocumentType @map("document_type")
+
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("identity_documents")
+}
+
+model User {
+  id String @id @default(uuid())
+
+  name       String
+  email      String    @unique
+  password   String
+  phone      String?   @unique
+  birthdate  DateTime?
+  role       UserRole  @default(USER)
+  resetToken String?   @unique @map("reset_token")
+  isActive   Boolean   @default(true) @map("is_active")
+
+  document  IdentityDocument?
+  addresses Address[]
+  orders    Order[]
+  cart      Cart?
+  reviews   Review[]
+  wishlists Wishlist[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
+  SOLD_OUT
+  ON_SALE
+  HIGHLIGHT
+
+  @@map("product_status")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+
+  @@map("order_status")
+}
+
+model Category {
+  id String @id @default(uuid())
+
+  name        String  @unique
+  description String?
+  isActive    Boolean @default(true) @map("is_active")
+  isHighlight Boolean @default(false) @map("is_highlight")
+
+  products ProductCategory[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
+model Tag {
+  id String @id @default(uuid())
+
+  name     String  @unique
+  isActive Boolean @default(true) @map("is_active")
+
+  products ProductTag[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("tags")
+}
+
+model Product {
+  id String @id @default(uuid())
+
+  name            String
+  slug            String        @unique
+  description     String?
+  price           Int
+  discount        Int           @default(0)
+  installments    Int           @default(1)
+  sku             String        @unique
+  stock           Int           @default(0)
+  status          ProductStatus @default(ACTIVE)
+  hasCustomOption Boolean       @default(false) @map("has_custom_option")
+  hasCustomModel  Boolean       @default(false) @map("has_custom_model")
+
+  height Int @default(0)
+  length Int @default(0)
+  width  Int @default(0)
+  weight Int @default(0)
+
+  categories     ProductCategory[]
+  tags           ProductTag[]
+  orderItems     OrderItem[]
+  cartItems      CartItem[]
+  reviews        Review[]
+  wishlists      Wishlist[]
+  stockMovements StockMovement[]
+  productImages  ProductImage[]
+  productMockups ProductMockup[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("products")
+}
+
+model ProductMockup {
+  id String @id @default(uuid())
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  fileId String      @unique
+  file   StorageFile @relation(references: [id], fields: [fileId])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("product_mockups")
+}
+
+enum FileStatus {
+  ACTIVE
+  DELETED
+  MISSING
+  PROCESSING
+  FAILED
+}
+
+model StorageFile {
+  id String @id @default(uuid())
+
+  fileStatus FileStatus @default(PROCESSING) @map("file_status")
+  fileName   String     @map("file_name")
+  fileKey    String     @unique @map("file_key")
+  fileBucket String     @map("file_bucket")
+
+  productImages  ProductImage[]
+  productMockups ProductMockup[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("storage_files")
+}
+
+model ProductImage {
+  id String @id @default(uuid())
+
+  fileId String      @unique
+  file   StorageFile @relation(references: [id], fields: [fileId])
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("product_images")
+}
+
+model ProductCategory {
+  id String @id @default(uuid())
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([productId, categoryId])
+  @@map("product_categories")
+}
+
+model ProductTag {
+  id String @id @default(uuid())
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  tagId String @map("tag_id")
+  tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([productId, tagId])
+  @@map("product_tags")
+}
+
+model Order {
+  id String @id @default(uuid())
+
+  orderNumber String      @unique @map("order_number")
+  status      OrderStatus @default(PENDING)
+  total       Decimal     @db.Decimal(10, 2)
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  shippingAddressId String?  @map("shipping_address_id")
+  shippingAddress   Address? @relation(fields: [shippingAddressId], references: [id], onDelete: SetNull)
+
+  shippingMethodId String?         @map("shipping_method_id")
+  shippingMethod   ShippingMethod? @relation(fields: [shippingMethodId], references: [id])
+
+  orderItems OrderItem[]
+  payment    Payment?
+
+  confirmedAt DateTime? @map("confirmed_at")
+  shippedAt   DateTime? @map("shipped_at")
+  deliveredAt DateTime? @map("delivered_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+
+  quantity   Int
+  unitPrice  Decimal @map("unit_price") @db.Decimal(10, 2)
+  totalPrice Decimal @map("total_price") @db.Decimal(10, 2)
+
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("order_items")
+}
+
+model Cart {
+  id String @id @default(uuid())
+
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  cartItems CartItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("carts")
+}
+
+model CartItem {
+  id String @id @default(uuid())
+
+  cartId String @map("cart_id")
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  quantity Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+
+  @@map("payment_status")
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  PIX
+  BANK_TRANSFER
+  PAYPAL
+
+  @@map("payment_methods")
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  orderId String @unique @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  amount          Int
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  transactionId   String?       @unique @map("transaction_id")
+  gatewayResponse Json?         @map("gateway_response")
+  failureReason   String?       @map("failure_reason")
+
+  paidAt DateTime? @map("paid_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("payments")
+}
+
+model ShippingMethod {
+  id String @id @default(uuid())
+
+  name          String
+  description   String?
+  price         Int
+  estimatedDays Int     @map("estimated_days")
+  isActive      Boolean @default(true) @map("is_active")
+
+  orders Order[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("shipping_methods")
+}
+
+model Review {
+  id String @id @default(uuid())
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  rating  Int
+  title   String?
+  comment String?
+
+  isVerifiedPurchase Boolean @default(false) @map("is_verified_purchase")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, productId])
+  @@map("reviews")
+}
+
+model Wishlist {
+  id String @id @default(uuid())
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, productId])
+  @@map("wishlists")
+}
+
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+
+  @@map("stock_movement_types")
+}
+
+model StockMovement {
+  id String @id @default(uuid())
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  type          StockMovementType
+  quantity      Int
+  reason        String?
+  reference     String?
+  previousStock Int               @map("previous_stock")
+  newStock      Int               @map("new_stock")
+
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("stock_movements")
+}

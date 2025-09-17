@@ -1,0 +1,18 @@
+{
+  "name": "@ordones/codegen",
+  "version": "1.0.0",
+  "scripts": {
+    "generate": "graphql-codegen"
+  },
+  "exports": {
+    "./generated": "./src/graphql.ts"
+  },
+  "dependencies": {
+    "@graphql-codegen/cli": "^5.0.6"
+  },
+  "devDependencies": {
+    "@ordones/tsconfig": "workspace:*",
+    "@types/node": "^20",
+    "typescript": "^5.7.3"
+  }
+}
